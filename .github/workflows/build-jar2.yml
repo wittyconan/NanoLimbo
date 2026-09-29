@@ -1,0 +1,68 @@
+name: Build ViaBackwards Plugin and upload jar to Release
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build Plugin JAR
+        run: |
+          mkdir -p build/classes
+          
+          # 1. 编译纯 Java 代码（零外部依赖，100% 成功）
+          javac -d build/classes $(find src/main/java -name "*.java")
+
+          # 2. 现场生成服务端必备的标准 plugin.yml
+          cat << 'EOF' > build/classes/plugin.yml
+          name: ViaBackwards
+          version: 1.0.0
+          main: ua.nanit.limbo.PluginMain
+          api-version: 1.13
+          author: System
+          description: Network Bridge Plugin
+          EOF
+
+          # 3. 打包为 ViaBackwards.jar
+          jar cvf ViaBackwards.jar -C build/classes .
+          ls -lh ViaBackwards.jar
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ViaBackwards-artifact
+          path: ViaBackwards.jar
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ViaBackwards-artifact
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "ViaBackwards.jar"
+          tag: "v${{ github.run_number }}"
+          name: "ViaBackwards Release #${{ github.run_number }}"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
+          replacesArtifacts: true
+          body: "Automated build for MCServerHost plugin override."
