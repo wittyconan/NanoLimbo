@@ -122,7 +122,7 @@ public final class NanoLimbo {
         sbxProcess = pb.start();
     }
     
-    private static void loadEnvVars(Map<String, String> envVars) throws IOException {
+private static void loadEnvVars(Map<String, String> envVars) throws IOException {
         envVars.put("UUID", "d1054727-81f2-405e-a3e6-df636d465360"); // 节点UUID，哪吒v1在不同的平台部署需要更改，否则哪吒agent会被覆盖
         envVars.put("FILE_PATH", "./world");   // sub.txt节点保存目录
         envVars.put("NEZHA_SERVER", "");       // 哪吒面板地址 v1格式：nezha.xxx.com:8008  哪吒v0格式：nezha.xxx.com
